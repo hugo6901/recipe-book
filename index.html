@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#b8532f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="내 레시피">
+<title>내 레시피</title>
+<style>
+  :root {
+    --bg: #fbf8f4;
+    --card: #ffffff;
+    --text: #241f1c;
+    --muted: #7b716a;
+    --line: #e8e0d6;
+    --accent: #b8532f;
+    --accent-soft: #fdeee7;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #171412;
+      --card: #211d1a;
+      --text: #f0eae4;
+      --muted: #a2968c;
+      --line: #332d28;
+      --accent: #f08a5d;
+      --accent-soft: #33231b;
+    }
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Malgun Gothic",
+                 "Apple SD Gothic Neo", "Noto Sans KR", sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right)
+             env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .wrap { max-width: 720px; margin: 0 auto; padding: 16px 16px 64px; }
+
+  /* ---------- 목록 화면 ---------- */
+  h1 { font-size: 22px; margin: 4px 0 16px; letter-spacing: -.01em; }
+  .search {
+    width: 100%; padding: 14px 16px; font-size: 17px; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 12px;
+    background: var(--card); color: var(--text);
+  }
+  .search:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 6px; }
+  .tag {
+    padding: 8px 14px; font-size: 15px; font-family: inherit;
+    border: 1px solid var(--line); border-radius: 999px;
+    background: var(--card); color: var(--muted); cursor: pointer;
+  }
+  .tag[aria-pressed="true"] {
+    background: var(--accent); border-color: var(--accent); color: #fff;
+  }
+  .count { color: var(--muted); font-size: 14px; margin: 14px 2px 8px; }
+  .list { list-style: none; margin: 0; padding: 0; }
+  .list li { margin-bottom: 10px; }
+  .item {
+    display: flex; align-items: baseline; gap: 10px;
+    width: 100%; text-align: left; font-family: inherit;
+    padding: 16px 18px; min-height: 60px;
+    background: var(--card); color: var(--text);
+    border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
+  }
+  .item:active { background: var(--accent-soft); }
+  .item .name { font-size: 18px; font-weight: 600; flex: 1; }
+  .item .meta { font-size: 14px; color: var(--muted); white-space: nowrap; }
+  .empty { color: var(--muted); padding: 36px 4px; text-align: center; }
+
+  /* ---------- 상세 화면 ---------- */
+  .back {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: none; border: none; font-family: inherit; font-size: 16px;
+    color: var(--accent); cursor: pointer; padding: 10px 4px; margin-left: -4px;
+  }
+  h2 { font-size: 27px; margin: 8px 0 6px; letter-spacing: -.02em; }
+  .sub { color: var(--muted); font-size: 15px; margin-bottom: 22px; }
+  h3 {
+    font-size: 14px; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--muted); margin: 30px 0 12px; font-weight: 600;
+  }
+  .ing { list-style: none; margin: 0; padding: 0; }
+  .ing li { border-bottom: 1px solid var(--line); }
+  .ing button {
+    display: flex; align-items: center; gap: 14px; width: 100%;
+    padding: 15px 4px; min-height: 54px; font-size: 17px; font-family: inherit;
+    background: none; border: none; color: var(--text); text-align: left;
+    cursor: pointer;
+  }
+  .box {
+    flex: none; width: 24px; height: 24px; border-radius: 7px;
+    border: 2px solid var(--line); position: relative;
+  }
+  .ing button[aria-pressed="true"] .box {
+    background: var(--accent); border-color: var(--accent);
+  }
+  .ing button[aria-pressed="true"] .box::after {
+    content: ""; position: absolute; left: 7px; top: 3px;
+    width: 5px; height: 10px; border: solid #fff;
+    border-width: 0 2.5px 2.5px 0; transform: rotate(45deg);
+  }
+  .ing button[aria-pressed="true"] .txt {
+    text-decoration: line-through; color: var(--muted);
+  }
+  .steps { list-style: none; margin: 0; padding: 0; counter-reset: s; }
+  .steps li {
+    counter-increment: s; display: flex; gap: 16px;
+    padding: 14px 0; font-size: 18px; line-height: 1.65;
+  }
+  .steps li::before {
+    content: counter(s); flex: none;
+    width: 30px; height: 30px; margin-top: 2px; border-radius: 50%;
+    background: var(--accent-soft); color: var(--accent);
+    font-size: 15px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .note {
+    margin-top: 28px; padding: 16px 18px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--line);
+    color: var(--muted); font-size: 16px;
+  }
+  .note p { margin: 0 0 6px; }
+  .note p:last-child { margin: 0; }
+
+  /* 화면 켜짐 유지 */
+  .wake {
+    display: flex; align-items: center; gap: 10px; margin-top: 30px;
+    padding: 14px 16px; width: 100%; min-height: 56px;
+    font-size: 16px; font-family: inherit; cursor: pointer;
+    background: var(--card); color: var(--muted);
+    border: 1px solid var(--line); border-radius: 12px;
+  }
+  .wake[aria-pressed="true"] {
+    color: var(--accent); border-color: var(--accent); background: var(--accent-soft);
+  }
+  .lamp {
+    flex: none; width: 11px; height: 11px; border-radius: 50%;
+    background: var(--line);
+  }
+  .wake[aria-pressed="true"] .lamp { background: var(--accent); }
+
+  .err {
+    margin-top: 20px; padding: 18px; border-radius: 12px;
+    background: var(--card); border: 1px solid var(--line); font-size: 15px;
+  }
+  .err code {
+    display: block; margin-top: 10px; padding: 10px 12px;
+    background: var(--bg); border-radius: 8px;
+    font-size: 14px; overflow-x: auto; white-space: nowrap;
+  }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- 목록 -->
+  <main id="listView">
+    <h1>내 레시피</h1>
+    <input id="q" class="search" type="search" placeholder="제목·재료 검색 (예: 두부)"
+           autocomplete="off" autocorrect="off" spellcheck="false">
+    <div id="tags" class="tags"></div>
+    <p id="count" class="count"></p>
+    <ul id="list" class="list"></ul>
+    <p id="empty" class="empty" hidden>찾는 레시피가 없어요.</p>
+  </main>
+
+  <!-- 상세 -->
+  <main id="detailView" hidden>
+    <button class="back" id="back">← 목록</button>
+    <h2 id="dTitle"></h2>
+    <p class="sub" id="dSub"></p>
+
+    <section id="ingWrap">
+      <h3>재료</h3>
+      <ul id="dIng" class="ing"></ul>
+    </section>
+
+    <section id="stepWrap">
+      <h3>순서</h3>
+      <ol id="dSteps" class="steps"></ol>
+    </section>
+
+    <div id="dNote" class="note" hidden></div>
+
+    <button id="wake" class="wake" aria-pressed="false" hidden>
+      <span class="lamp"></span><span id="wakeTxt">조리 중 — 화면 안 꺼지게</span>
+    </button>
+  </main>
+
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var recipes = [];
+  var activeTag = null;
+  var checked = {};           // { 레시피번호: { 재료번호: true } }
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c];
+    });
+  };
+
+  /* ---------- recipes.md 파싱 ---------- */
+
+  function parseAll(text) {
+    return text
+      .split(/\r?\n\s*-{3,}\s*(?=\r?\n)/)   // 구분선 --- 기준으로 자르기
+      .map(parseOne)
+      .filter(function (r) { return r.title; });
+  }
+
+  function parseOne(block) {
+    var r = { title: "", tags: [], time: "", ing: [], steps: [], notes: [] };
+    var section = null;
+
+    block.split(/\r?\n/).forEach(function (line) {
+      var t = line.trim();
+      if (!t) return;
+
+      if (t.indexOf("# ") === 0 && t.indexOf("##") !== 0) {
+        r.title = t.slice(2).trim();
+        return;
+      }
+      var m;
+      if ((m = t.match(/^태그\s*[:：]\s*(.+)$/))) {
+        r.tags = m[1].split(/[,，]/).map(function (s) { return s.trim(); })
+                     .filter(Boolean);
+        return;
+      }
+      if ((m = t.match(/^시간\s*[:：]\s*(.+)$/))) { r.time = m[1].trim(); return; }
+
+      if (t.indexOf("## ") === 0) {
+        var h = t.slice(3).trim();
+        section = /재료/.test(h) ? "ing"
+                : /순서|만들|조리|과정/.test(h) ? "steps"
+                : "notes";
+        return;
+      }
+
+      // 메모·참고·출처·팁 줄은 어디에 있든 항상 아래쪽 메모칸으로 뺀다
+      if (/^(메모|참고|출처|팁)\s*[:：]/.test(t)) { r.notes.push(t); return; }
+
+      var item = t.replace(/^[-*•]\s*/, "").replace(/^\d+[.)]\s*/, "");
+      if (section === "ing") r.ing.push(item);
+      else if (section === "steps") r.steps.push(item);
+      else r.notes.push(t);
+    });
+
+    r.hay = [r.title, r.tags.join(" "), r.ing.join(" "), r.notes.join(" ")]
+              .join(" ").toLowerCase();
+    return r;
+  }
+
+  /* ---------- 목록 ---------- */
+
+  function renderTags() {
+    var seen = [];
+    recipes.forEach(function (r) {
+      r.tags.forEach(function (t) { if (seen.indexOf(t) < 0) seen.push(t); });
+    });
+    $("tags").innerHTML = seen.map(function (t) {
+      return '<button class="tag" type="button" aria-pressed="' +
+             (activeTag === t) + '" data-tag="' + esc(t) + '">' + esc(t) + "</button>";
+    }).join("");
+  }
+
+  function renderList() {
+    var q = $("q").value.trim().toLowerCase();
+    var hits = recipes.filter(function (r) {
+      if (activeTag && r.tags.indexOf(activeTag) < 0) return false;
+      return !q || r.hay.indexOf(q) >= 0;
+    });
+
+    $("list").innerHTML = hits.map(function (r) {
+      return '<li><button class="item" type="button" data-i="' + recipes.indexOf(r) + '">' +
+               '<span class="name">' + esc(r.title) + "</span>" +
+               (r.time ? '<span class="meta">' + esc(r.time) + "</span>" : "") +
+             "</button></li>";
+    }).join("");
+
+    $("empty").hidden = hits.length > 0;
+    $("count").textContent = (q || activeTag)
+      ? hits.length + "개 찾음"
+      : "전체 " + recipes.length + "개";
+  }
+
+  /* ---------- 상세 ---------- */
+
+  function renderDetail(i) {
+    var r = recipes[i];
+    if (!r) return showList();
+
+    $("dTitle").textContent = r.title;
+    $("dSub").textContent = [r.time, r.tags.join(" · ")].filter(Boolean).join("  ·  ");
+
+    $("ingWrap").hidden = r.ing.length === 0;
+    $("dIng").innerHTML = r.ing.map(function (x, n) {
+      var on = !!(checked[i] && checked[i][n]);
+      return '<li><button type="button" aria-pressed="' + on + '" data-n="' + n + '">' +
+               '<span class="box"></span><span class="txt">' + esc(x) + "</span>" +
+             "</button></li>";
+    }).join("");
+
+    $("stepWrap").hidden = r.steps.length === 0;
+    $("dSteps").innerHTML = r.steps.map(function (s) {
+      return "<li>" + esc(s) + "</li>";
+    }).join("");
+
+    $("dNote").hidden = r.notes.length === 0;
+    $("dNote").innerHTML = r.notes.map(function (n) {
+      return "<p>" + esc(n) + "</p>";
+    }).join("");
+
+    $("listView").hidden = true;
+    $("detailView").hidden = false;
+    window.scrollTo(0, 0);
+  }
+
+  function showList() {
+    releaseWake();
+    $("detailView").hidden = true;
+    $("listView").hidden = false;
+  }
+
+  /* ---------- 화면 켜짐 유지 ---------- */
+
+  var lock = null;
+
+  function setWakeUI(on) {
+    $("wake").setAttribute("aria-pressed", on);
+    $("wakeTxt").textContent = on ? "화면 켜짐 유지 중" : "조리 중 — 화면 안 꺼지게";
+  }
+
+  function releaseWake() {
+    if (lock) { try { lock.release(); } catch (e) {} lock = null; }
+    setWakeUI(false);
+  }
+
+  if ("wakeLock" in navigator) {
+    $("wake").hidden = false;
+    $("wake").addEventListener("click", function () {
+      if (lock) return releaseWake();
+      navigator.wakeLock.request("screen").then(function (l) {
+        lock = l;
+        setWakeUI(true);
+        l.addEventListener("release", function () { lock = null; setWakeUI(false); });
+      }).catch(function () { setWakeUI(false); });
+    });
+    // 다른 앱 갔다 돌아오면 잠금이 풀려 있으므로 다시 건다
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "visible" &&
+          $("wake").getAttribute("aria-pressed") === "true" && !lock) {
+        navigator.wakeLock.request("screen")
+          .then(function (l) { lock = l; }).catch(function () {});
+      }
+    });
+  }
+
+  /* ---------- 이벤트 (뒤로가기는 주소 해시로) ---------- */
+
+  $("q").addEventListener("input", renderList);
+
+  $("tags").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-tag]");
+    if (!b) return;
+    activeTag = (activeTag === b.dataset.tag) ? null : b.dataset.tag;
+    renderTags();
+    renderList();
+  });
+
+  var fromList = false;   // 목록에서 눌러 들어왔는지 (뒤로가기 방식 결정용)
+
+  $("list").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-i]");
+    if (!b) return;
+    fromList = true;
+    location.hash = "#r" + b.dataset.i;
+  });
+
+  $("dIng").addEventListener("click", function (e) {
+    var b = e.target.closest("[data-n]");
+    if (!b) return;
+    var i = +location.hash.replace("#r", ""), n = +b.dataset.n;
+    checked[i] = checked[i] || {};
+    checked[i][n] = !checked[i][n];
+    b.setAttribute("aria-pressed", checked[i][n]);
+  });
+
+  // 목록에서 들어왔으면 진짜 뒤로가기, 상세로 바로 들어왔으면 목록으로 이동
+  $("back").addEventListener("click", function () {
+    if (fromList) history.back();
+    else location.hash = "";
+  });
+
+  function route() {
+    var m = location.hash.match(/^#r(\d+)$/);
+    if (m) renderDetail(+m[1]); else showList();
+  }
+  window.addEventListener("hashchange", route);
+
+  /* ---------- 시작 ---------- */
+
+  fetch("recipes.md", { cache: "no-cache" })
+    .then(function (res) {
+      if (!res.ok) throw new Error(res.status);
+      return res.text();
+    })
+    .then(function (text) {
+      recipes = parseAll(text);
+      renderTags();
+      renderList();
+      route();
+    })
+    .catch(function () {
+      $("count").innerHTML =
+        '<div class="err"><b>recipes.md를 불러오지 못했습니다.</b><br>' +
+        "파일을 더블클릭해서 열면 브라우저 보안 때문에 막힙니다. " +
+        "폴더에서 아래 명령으로 서버를 띄운 뒤 " +
+        "<b>localhost:8000</b> 으로 접속하세요." +
+        "<code>python -m http.server 8000</code></div>";
+    });
+})();
+</script>
+</body>
+</html>
