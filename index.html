@@ -65,15 +65,22 @@
   .list { list-style: none; margin: 0; padding: 0; }
   .list li { margin-bottom: 10px; }
   .item {
-    display: flex; align-items: baseline; gap: 10px;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px;
     width: 100%; text-align: left; font-family: inherit;
     padding: 16px 18px; min-height: 60px;
     background: var(--card); color: var(--text);
     border: 1px solid var(--line); border-radius: 12px; cursor: pointer;
   }
   .item:active { background: var(--accent-soft); }
-  .item .name { font-size: 18px; font-weight: 600; flex: 1; }
-  .item .meta { font-size: 14px; color: var(--muted); white-space: nowrap; }
+  .item .name {
+    font-size: 18px; font-weight: 600;
+    flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere;
+  }
+  .item .meta {
+    font-size: 14px; color: var(--muted);
+    flex: 0 1 auto; min-width: 0; max-width: 100%;
+    white-space: normal; overflow-wrap: anywhere;
+  }
   .empty { color: var(--muted); padding: 36px 4px; text-align: center; }
 
   /* ---------- 상세 화면 ---------- */
@@ -128,7 +135,7 @@
     background: var(--card); border: 1px solid var(--line);
     color: var(--muted); font-size: 16px;
   }
-  .note p { margin: 0 0 6px; }
+  .note p { margin: 0 0 6px; overflow-wrap: anywhere; }
   .note p:last-child { margin: 0; }
 
   /* 화면 켜짐 유지 */
